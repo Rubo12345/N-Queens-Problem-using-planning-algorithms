@@ -81,6 +81,19 @@ def checkattackers(board,x,y):
   return count
 
 # print(checkattackers([[1,1,1],[1,1,1],[1,1,1]],1,0))
+def attpairs(board,x,y):
+  count=0
+  for i in range(len(board)):
+    for j in range(len(board[i])):
+      if board[i][j]>0 and (i!=x or j!=y):
+        xdiff=i-x
+        ydiff=j-y
+        #print(i,j)
+        if xdiff==0 or ydiff==0:
+          count+=1
+        elif (xdiff/ydiff)==1 or (xdiff/ydiff)==-1:
+          count+=1
+  return count
 
 def attackingpairs(board):
   count=0
@@ -88,7 +101,7 @@ def attackingpairs(board):
   for i in range(l):
     for j in range(l):
       if board[i][j]>0:
-        count=count+checkattackers(board,i,j)
+        count=count+attpairs(board,i,j)#count+checkattackers(board,i,j)
   count=count/2
   return count
 # print(attackingpairs([[0,1,0],[1,1,1],[0,1,0]]))
