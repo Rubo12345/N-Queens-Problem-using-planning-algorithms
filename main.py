@@ -1,3 +1,4 @@
+from mimetypes import init
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import csv
@@ -7,6 +8,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.font_manager import FontProperties
 from collections import deque
+import math
+import Attacking_Queens
 
 class Queen:
     def __init__(self):
@@ -99,6 +102,82 @@ def bfs(init_board_state, board_size):
                             visited.append(new_state)
 
 
+# class Node:
+#     def __init__(self, row, col, g, h, parent):
+#         self.row = row
+#         self.col = col
+#         self.g = g         # cost to come (previous g + moving cost)
+#         self.h = h          # heuristic
+#         self.cost = self.g + self.h      # total cost (depend on the algorithm)
+#         self.parent = parent    # previous node             
+
+class State:
+    def __init__(self, state):
+        self.state = state
+        self.g = 0
+        self.h = math.inf
+        self.f = self.g + self.h
+        self.previous = []
+
+def g_cost(current_state, previous_state):
+    g = 0
+    queens = Queen()
+    if previous_state == None:
+        return 0
+    else:
+        queens.getpositions(current_state)
+        cs = queens.positions
+        queens.positions = []
+        queens.getpositions(previous_state)
+        ps = queens.positions
+        for i in range(len(cs)):
+            if cs[i] != ps[i]:
+                g += math.sqrt((cs[i][0] - ps[i][0])**2 + (cs[i][1] - ps[i][1])**2)
+    return g
+
+def min_f_cost(List):
+    Cost = math.inf
+    index = 0
+    for i in range(len(List)):
+        if Cost > List[i].cost:
+            Cost = List[i].cost
+            index = i 
+    q = List[index]
+    return q
+
+def Astar(init_board_state, board_size):
+    queens = Queen()
+    Open_List = []
+    Closed_List = []
+    Open_List.append(init_board_state)
+
+    while(Open_List):
+        current_state = min_f_cost(Open_List)
+        Open_List.pop(Open_List.index(current_state))
+        
+        queens.getpositions(current_state)
+        for i in range(len(queens.positions)):
+            for queen in queens.positions:
+                cost = current_state.g + 1
+                for j in range(-board_size+1, board_size):
+                    queens.setcoords(queen)
+                    new_state = queens.movequeen(j, current_state)
+
+                    if new_state in Open_List:
+                        if new_state.g <= cost:
+                            continue
+                    if new_state in Closed_List:
+                        if new_state.g <= cost:
+                            continue
+                    else:
+                        Open_List.append(new_state)
+                        new_state.h = Attacking_Queens.attackingpairs(new_state)
+                    new_state.g = cost
+                    new_state.cost = new_state.h + new_state.g
+
+        Closed_List.append(current_state)
+    return Closed_List
+
 if __name__ == "__main__":
 
     board_size = 5
@@ -111,3 +190,4 @@ if __name__ == "__main__":
 
     bfs(init_board_state, board_size)
     
+#g(x) will the steps moved
