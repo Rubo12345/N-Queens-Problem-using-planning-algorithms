@@ -141,16 +141,17 @@ def Astar(init_board_state, board_size):
     Open_List = []
     Open_List_States = []
     Closed_List = []
-    Open_List.append((init_board_state,np.inf,0,np.inf))
+    #Store board configuration, total cost travelled so far, f (cost+move+heuristic), heuristic
+    Open_List.append((init_board_state,0,np.inf, np.inf))
     Open_List_States.append((init_board_state))
 
     while Open_List:
         Open_List.sort(key = takeSecond)
         m = Open_List.pop(0)
         current_state = m[0]
-        f_cost = m[1]
-        g_cost = m[2]
-        h_cost = m[3]
+        g_cost = m[1] #total cost ravelled so far
+        f_cost = m[2] #cost+move+heuristic
+        h_cost = m[3] #heuristic
 
         queens.getpositions(current_state)
         # print(h_cost)
@@ -160,41 +161,21 @@ def Astar(init_board_state, board_size):
 
         for i in range(len(queens.positions)):
             for queen in queens.positions:
-                cost = g_cost + queens.weights[queens.positions.index(queen)]**2
                 for j in range(-board_size+1, board_size):
                     queens.setcoords(queen)
                     queen_weight = queens.weights[queens.positions.index(queen)]
                     new_state = queens.movequeen(j, current_state)
-                    new_state_g += queen_weight**2
 
-                    # new_state_h = attackingpairs(new_state)
-                    # new_state_cost = new_state_g + new_state_h
-                    # a = (new_state,new_state_cost,new_state_g,new_state_h)
-
-                    # for i in range(len(Open_List)):
-                    #     if new_state == Open_List[i][0]:
-                    #         if new_state_g <= cost:
-                    #             continue
-
-                    # for j in range(len(Closed_List)):
-                    #     if new_state == Closed_List[i][0]:
-                    #         if new_state_g <= cost:
-                    #             continue
-
-                    if (new_state,new_state_cost,new_state_g,new_state_h) in Open_List: #This is wrong
-                        if new_state_g <= cost:
-                            continue
-                    if (new_state,new_state_cost,new_state_g,new_state_h) in Closed_List:
-                        if new_state_g <= cost:
-                            continue
-                    else:
-                        new_state_h = attackingpairs(new_state)
-                        new_state_cost = new_state_g + new_state_h
-                        Open_List.append((new_state,new_state_cost,new_state_g,new_state_h))
-                    new_state_g = cost
-                    new_state_cost = new_state_h + new_state_g
+                    is_in_visited = any(np.array_equal(new_state, x) for x in Closed_List)
+                    if not is_in_visited:
+                        if new_state is not None:
+                            new_state_g = g_cost + queen_weight**2
+                            new_state_h = attackingpairs(new_state)
+                            new_state_f = new_state_g + new_state_h
+                            Open_List.append((new_state,new_state_g, new_state_f, new_state_h))
 
         Closed_List.append(current_state)
+
     return current_state, queens.positions
 
 if __name__ == "__main__":
@@ -212,6 +193,3 @@ if __name__ == "__main__":
     plt.figure(2)
     plot(solution, queens_pos, 'Solution')
     plt.show()
-
-
-    
