@@ -1,3 +1,4 @@
+from lib2to3.pgen2.token import OP
 from queue import Empty
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
@@ -41,7 +42,6 @@ class Queen:
     def movequeen(self, i, board):
         '''Move one queen along the column. 
         If the position is valid, create a board with the new configuration'''
-
         new_position = (self.row + i, self.col)
         if new_position[0] != self.row:
             if self.is_valid(new_position):
@@ -75,6 +75,9 @@ def generate_configuration(n, weight_range):
 
 def takeSecond(elem):
     return elem[1]
+
+def takeThird(elem):
+    return elem[2]
 
 def bfs(init_board_state, board_size):
     flag = 0
@@ -118,43 +121,30 @@ def bfs(init_board_state, board_size):
     else:
         print("No solution was found.")
 
-def g_cost(current_state, previous_state):
-    g = 0
-    queens = Queen()
-    if previous_state == None:
-        return 0
-    else:
-        queens.getpositions(current_state)
-        cs = queens.positions
-        queens.positions = []
-        queens.getpositions(previous_state)
-        ps = queens.positions
-        for i in range(len(cs)):
-            if cs[i] != ps[i]:
-                g += math.sqrt((cs[i][0] - ps[i][0])**2 + (cs[i][1] - ps[i][1])**2)
-    return g
-
 def Astar(init_board_state, board_size):
     flag = 0
-    new_state_g=0
     queens = Queen()
     Open_List = []
-    Open_List_States = []
     Closed_List = []
+    init_board_state_h = attackingpairs(init_board_state)
+    
     #Store board configuration, total cost travelled so far, f (cost+move+heuristic), heuristic
-    Open_List.append((init_board_state,0,np.inf, np.inf))
-    Open_List_States.append((init_board_state))
+    Open_List.append((init_board_state, 0, init_board_state_h, init_board_state_h))
+    Closed_List.append(init_board_state)
+
 
     while Open_List:
-        Open_List.sort(key = takeSecond)
+        Open_List.sort(key = takeThird)
         m = Open_List.pop(0)
         current_state = m[0]
         g_cost = m[1] #total cost ravelled so far
         f_cost = m[2] #cost+move+heuristic
         h_cost = m[3] #heuristic
-
+        print("Heelllo")
+        Closed_List.append(current_state)
+        
         queens.getpositions(current_state)
-        # print(h_cost)
+
         if h_cost == 0:
             flag = 1
             break
@@ -162,21 +152,28 @@ def Astar(init_board_state, board_size):
         for i in range(len(queens.positions)):
             for queen in queens.positions:
                 for j in range(-board_size+1, board_size):
+                        
+                    is_in_Closed = False
                     queens.setcoords(queen)
                     queen_weight = queens.weights[queens.positions.index(queen)]
                     new_state = queens.movequeen(j, current_state)
+                    
+                    if new_state is not None and (new_state != current_state).any():
+                        is_in_Closed = any(np.array_equal(new_state, x) for x in Closed_List)
 
-                    is_in_visited = any(np.array_equal(new_state, x) for x in Closed_List)
-                    if not is_in_visited:
-                        if new_state is not None:
+                        if not is_in_Closed:
                             new_state_g = g_cost + queen_weight**2
                             new_state_h = attackingpairs(new_state)
-                            new_state_f = new_state_g + new_state_h
-                            Open_List.append((new_state,new_state_g, new_state_f, new_state_h))
+                            Open_List.append((new_state, new_state_g, new_state_g+new_state_h, new_state_h))
+                            
+                            if new_state_h == 0:
+                                print("0!")
+                                break
 
-        Closed_List.append(current_state)
-
-    return current_state, queens.positions
+    if flag == 1:
+        return current_state, queens.positions
+    else:
+        print("No solution was found.")
 
 if __name__ == "__main__":
 
@@ -187,7 +184,7 @@ if __name__ == "__main__":
     init_board_state, init_pos = generate_configuration(board_size, weight_range)
     # print(init_board_state)
     # solution, queens_pos = bfs(init_board_state, board_size)
-    solution, queens_pos = Astar(init_board_state,board_size )
+    solution, queens_pos = Astar(init_board_state,board_size)
     plt.figure(1)
     plot(init_board_state, init_pos, 'Initial Configuration')
     plt.figure(2)
