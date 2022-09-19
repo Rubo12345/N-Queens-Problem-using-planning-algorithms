@@ -66,11 +66,22 @@ def generate_configuration(n, weight_range):
     #0 is an empty space
     board = np.zeros([n,n])
     init_pos = []
+    # nums = []
+    # for i in range(0, n):
+    #     row_index = random.randrange(0, n, 1)
+    #     random_number = random.randrange(1, weight_range, 1)
+    #     if random_number not in nums:
+    #         nums.append(random_number)
+    #         board[row_index, i] = random_number
+    #     else:
+    #         continue
+    #     init_pos.append((i, row_index))
+    board = np.zeros([n,n])
+    init_pos = []
     for i in range(0, n):
         row_index = random.randrange(0, n, 1)
         board[row_index, i] = random.randrange(1, weight_range, 1)
         init_pos.append((i, row_index))
-    
     return board, init_pos
 
 def takeSecond(elem):
@@ -104,17 +115,16 @@ def bfs(init_board_state, board_size):
             flag = 1
             break
     
-        for i in range(len(queens.positions)):
-            for queen in queens.positions:
-                for j in range(-board_size+1, board_size):
-                    queens.setcoords(queen)
-                    new_state = queens.movequeen(j, current_state)
-                    is_in_visited = any(np.array_equal(new_state, x) for x in visited)
-                    if not is_in_visited:
-                        if new_state is not None:
-                            att_queens = attackingpairs(new_state)
-                            queue.append((new_state, att_queens))
-                            visited.append(new_state)
+        for queen in queens.positions:
+            for j in range(-board_size+1, board_size):
+                queens.setcoords(queen)
+                new_state = queens.movequeen(j, current_state)
+                is_in_visited = any(np.array_equal(new_state, x) for x in visited)
+                if not is_in_visited:
+                    if new_state is not None:
+                        att_queens = attackingpairs(new_state)
+                        queue.append((new_state, att_queens))
+                        visited.append(new_state)
 
     if flag == 1:
         return current_state, queens.positions
@@ -140,7 +150,7 @@ def Astar(init_board_state, board_size):
         g_cost = m[1] #total cost ravelled so far
         f_cost = m[2] #cost+move+heuristic
         h_cost = m[3] #heuristic
-        print("Heelllo")
+
         Closed_List.append(current_state)
         
         queens.getpositions(current_state)
@@ -149,26 +159,25 @@ def Astar(init_board_state, board_size):
             flag = 1
             break
 
-        for i in range(len(queens.positions)):
-            for queen in queens.positions:
-                for j in range(-board_size+1, board_size):
-                        
-                    is_in_Closed = False
-                    queens.setcoords(queen)
-                    queen_weight = queens.weights[queens.positions.index(queen)]
-                    new_state = queens.movequeen(j, current_state)
+        for queen in queens.positions:
+            for j in range(-board_size+1, board_size):
                     
-                    if new_state is not None and (new_state != current_state).any():
-                        is_in_Closed = any(np.array_equal(new_state, x) for x in Closed_List)
+                is_in_Closed = False
+                queens.setcoords(queen)
+                queen_weight = queens.weights[queens.positions.index(queen)]
+                new_state = queens.movequeen(j, current_state)
+                
+                if new_state is not None and (new_state != current_state).any():
+                    is_in_Closed = any(np.array_equal(new_state, x) for x in Closed_List)
 
-                        if not is_in_Closed:
-                            new_state_g = g_cost + queen_weight**2
-                            new_state_h = attackingpairs(new_state)
-                            Open_List.append((new_state, new_state_g, new_state_g+new_state_h, new_state_h))
-                            
-                            if new_state_h == 0:
-                                print("0!")
-                                break
+                    if not is_in_Closed:
+                        new_state_g = g_cost + queen_weight**2
+                        new_state_h = attackingpairs(new_state)
+                        Open_List.append((new_state, new_state_g, new_state_g+new_state_h, new_state_h))
+                        
+                        if new_state_h == 0:
+                            print("0!")
+                            break
 
     if flag == 1:
         return current_state, queens.positions
@@ -179,10 +188,9 @@ if __name__ == "__main__":
 
     board_size = 5
     weight_range = 8
-
     # Generate the initial random configuration of the board
     init_board_state, init_pos = generate_configuration(board_size, weight_range)
-    # print(init_board_state)
+    print(init_board_state)
     # solution, queens_pos = bfs(init_board_state, board_size)
     solution, queens_pos = Astar(init_board_state,board_size)
     plt.figure(1)
