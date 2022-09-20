@@ -124,8 +124,6 @@ def bfs(init_board_state, board_size):
         m = queue.pop(0)
         current_state = m[0]
         n = m[1]
-
-        expanded_nodes.append(current_state)
         #get positions of queens in current board
         queens.getpositions(current_state)
 
@@ -137,6 +135,9 @@ def bfs(init_board_state, board_size):
             for j in range(-board_size+1, board_size):
                 queens.setcoords(queen)
                 new_state = queens.movequeen(j, current_state)
+                
+                expanded_nodes.append(new_state)
+
                 is_in_visited = any(np.array_equal(new_state, x) for x in visited)
                 if not is_in_visited:
                     if new_state is not None:
@@ -163,12 +164,11 @@ def Astar(init_board_state, board_size):
     queens = Queen()
     Open_List = []
     Closed_List = []
+    expanded_nodes = []
     init_board_state_h = attackingpairs(init_board_state)
     
     #Store board configuration, total cost travelled so far, f (cost+move+heuristic), heuristic
     Open_List.append((init_board_state, 0, init_board_state_h, init_board_state_h))
-    Closed_List.append(init_board_state)
-
 
     while Open_List:
         Open_List.sort(key = takeThird)
@@ -178,7 +178,6 @@ def Astar(init_board_state, board_size):
         f_cost = m[2] #cost+move+heuristic
         h_cost = m[3] #heuristic
 
-        cheapest_cost = np.inf
         Closed_List.append(current_state)
         
         queens.getpositions(current_state)
@@ -190,29 +189,37 @@ def Astar(init_board_state, board_size):
         #for i in range(len(queens.positions)):
         for queen in queens.positions:
             for j in range(-board_size+1, board_size):
-                is_in_Closed = False
                 queens.setcoords(queen)
                 queen_weight = queens.weights[queens.positions.index(queen)]
                 new_state = queens.movequeen(j, current_state)
                 
-                is_in_Closed = any(np.array_equal(new_state, x) for x in Closed_List)
+                expanded_nodes.append(new_state)
+
+                is_in_Closed_List = any(np.array_equal(new_state, x) for x in Closed_List)
+                is_in_Open_List = any(np.array_equal(new_state,x[0]) for x in Open_List)
+
+                cost = g_cost + queen_weight**2
                 new_state_g = g_cost + queen_weight**2
-
-                if not is_in_Closed:
-                #and new_state_g <= cheapest_cost:
-                    if new_state is not None:
-
-                        new_state_h = attackingpairs(new_state)
-                        Open_List.append((new_state, new_state_g, new_state_g+new_state_h, new_state_h))
+                if new_state is not None:
+                    if is_in_Open_List:
+                        if new_state_g <= g_cost:
+                            continue
                         
-                        #if new_state_h == 0:
-                        #    cheapest_cost = new_state_g
-                        #    continue
+                    if is_in_Closed_List:
+                        if new_state_g <= g_cost:
+                            continue
+
+                    else:
+                        new_state_g = g_cost
+                        new_state_h = attackingpairs(new_state)
+                        new_state_f = new_state_g + new_state_h
+                        Open_List.append((new_state,new_state_g, new_state_f, new_state_h))
+
 
     if flag == 1:
         end = time.time()
         print("Elapsed time: " + str(round(end-start, 2)) + " s")
-        print("Nodes expanded: " + str(len(Closed_List)))
+        print("Nodes expanded: " + str(len(expanded_nodes)))
 
         finalmoves(init_board_state, current_state)
         return current_state, queens.positions
