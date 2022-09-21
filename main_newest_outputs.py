@@ -85,6 +85,7 @@ def takeThird(elem):
 
 def finalmoves(init_board, solution):
     column = 0
+    costs = []
     for row_int, row_sol in zip(init_board.T, solution.T):
         column = column + 1
         for i in range(len(init_board)):
@@ -93,14 +94,25 @@ def finalmoves(init_board, solution):
                     move = i-j
                     if move < 0:
                         if move == 1:
+                            costs.append(row_int[i]**2)
                             print("Move column " + str(column) + " down " + str(abs(move)) + " square.")
+                            
                         else:
+                            costs.append((row_int[i]**2) * abs(move))
                             print("Move column " + str(column) + " down " + str(abs(move)) + " squares.")
+                            
+
                     elif move > 0:
                         if move == 1:
+                            costs.append(row_int[i]**2)
                             print("Move column " + str(column) + " up " + str(abs(move)) + " square.")
+                            
                         else:
-                            print("Move column " + str(column) + " up " + str(abs(move)) + " squares.")
+                            costs.append((row_int[i]**2) * abs(move))
+                            print("Move column " + str(column) + " up " + str(abs(move)) + " squares.")  
+    
+    totalcost = sum(costs)
+    print("The solution cost is: " + str(totalcost))
 
 def bfs(init_board_state, board_size):
 
@@ -113,6 +125,7 @@ def bfs(init_board_state, board_size):
     #Initialize queue and visited board configuration
     visited = []
     queue = []
+    search_depth = 0
     expanded_nodes = []
     #append initial configuration
     visited.append(init_board_state)
@@ -127,12 +140,13 @@ def bfs(init_board_state, board_size):
         #get positions of queens in current board
         queens.getpositions(current_state)
 
+        search_depth += 1
         if n == 0:
             flag = 1
             break
         
         for queen in queens.positions:
-            for j in range(-board_size+1, board_size):
+            for j in [-1, 1]:
                 queens.setcoords(queen)
                 new_state = queens.movequeen(j, current_state)
                 
@@ -149,6 +163,7 @@ def bfs(init_board_state, board_size):
         end = time.time()
         print("Elapsed time: " + str(round(end-start, 2)) + " s")
         print("Nodes expanded: " + str(len(expanded_nodes)))
+        print("Search depth: " + str(search_depth))
         finalmoves(init_board_state, current_state)
         return current_state, queens.positions
     else:
@@ -165,6 +180,8 @@ def Astar(init_board_state, board_size):
     Open_List = []
     Closed_List = []
     expanded_nodes = []
+    search_depth = 0
+
     init_board_state_h = attackingpairs(init_board_state)
     
     #Store board configuration, total cost travelled so far, f (cost+move+heuristic), heuristic
@@ -180,6 +197,8 @@ def Astar(init_board_state, board_size):
 
         Closed_List.append(current_state)
         
+        search_depth += 1
+
         queens.getpositions(current_state)
 
         if h_cost == 0:
@@ -220,6 +239,7 @@ def Astar(init_board_state, board_size):
         end = time.time()
         print("Elapsed time: " + str(round(end-start, 2)) + " s")
         print("Nodes expanded: " + str(len(expanded_nodes)))
+        print("Search depth: " + str(search_depth))
 
         finalmoves(init_board_state, current_state)
         return current_state, queens.positions
