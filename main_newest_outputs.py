@@ -96,13 +96,17 @@ def finalmoves(init_board, solution):
                         if move == 1:
                             costs.append(row_int[i]**2)
                             print("Move column " + str(column) + " down " + str(abs(move)) + " square.")
+                            
                         else:
                             costs.append((row_int[i]**2)*abs(move))
                             print("Move column " + str(column) + " down " + str(abs(move)) + " squares.")
+                            
+
                     elif move > 0:
                         if move == 1:
                             costs.append(row_int[i] ** 2)
                             print("Move column " + str(column) + " up " + str(abs(move)) + " square.")
+                            
                         else:
                             print("Move column " + str(column) + " up " + str(abs(move)) + " squares.")
                             costs.append((row_int[i]**2) * abs(move))
