@@ -188,7 +188,7 @@ def Astar(init_board_state, board_size):
 
         #for i in range(len(queens.positions)):
         for queen in queens.positions:
-            for j in range(-board_size+1, board_size):
+            for j in [-1,1]:
                 queens.setcoords(queen)
                 queen_weight = queens.weights[queens.positions.index(queen)]
                 new_state = queens.movequeen(j, current_state)
