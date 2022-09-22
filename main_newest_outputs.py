@@ -146,7 +146,7 @@ def bfs(init_board_state, board_size):
             break
         
         for queen in queens.positions:
-            for j in range(-1,2):
+            for j in range(-board_size, board_size+1):
                 queens.setcoords(queen)
                 new_state = queens.movequeen(j, current_state)
                 
@@ -203,7 +203,7 @@ def Astar(init_board_state, board_size):
             break
 
         for queen in queens.positions:
-            for j in range(-1,2):
+            for j in range(-board_size, board_size+1):
                 queens.setcoords(queen)
                 queen_weight = queens.weights[queens.positions.index(queen)]
                 new_state = queens.movequeen(j, current_state)
@@ -211,25 +211,28 @@ def Astar(init_board_state, board_size):
                 expanded_nodes.append(new_state)
 
                 is_in_Closed_List = any(np.array_equal(new_state, x) for x in Closed_List)
-                is_in_Open_List = any(np.array_equal(new_state,x[0]) for x in Open_List)
-
-                cost = g_cost + queen_weight**2
-                new_state_g = g_cost + queen_weight**2
+                
+                is_in_Open_List = False
+                for node in range(len(Open_List)):
+                    if (new_state == Open_List[node][0]).all():
+                        is_in_Open_List = True
+                        index = node
+                        current_cost = Open_List[node][2]
+            
                 if new_state is not None:
-                    if is_in_Open_List:
-                        if new_state_g <= g_cost:
-                            continue
-                        
-                    if is_in_Closed_List:
-                        if new_state_g <= g_cost:
-                            continue
+                    if not is_in_Closed_List:
 
-                    else:
-                        new_state_g = g_cost
                         new_state_h = attackingpairs(new_state) * 10
-                        new_state_f = new_state_g + new_state_h
-                        Open_List.append((new_state,new_state_g, new_state_f, new_state_h))
+                        new_state_g = g_cost + queen_weight**2
+                        new_state_cost = new_state_g + new_state_h
 
+                        if is_in_Open_List:
+                            if new_state_cost < current_cost:
+                                Open_List.pop(index)
+                            else:
+                                continue
+                        
+                        Open_List.append((new_state,new_state_g, new_state_cost, new_state_h))
 
     if flag == 1:
         end = time.time()
@@ -260,7 +263,7 @@ if __name__ == "__main__":
     init_board_state = np.array(init_board_state)
 
     #board = [int(i) for i in board]
-
+    #board_size = 10
     board_size = len(init_board_state)
     weight_range = 8
 
