@@ -98,8 +98,8 @@ def findmoves(r,c,brd):
         iter2-=1
     mvset=[]
     mvset=vmoves
-    for i in hmoves:
-        mvset.append(i)
+    #for i in hmoves:
+    #    mvset.append(i)
     return mvset
 
 def costfinder(brd):

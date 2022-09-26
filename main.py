@@ -273,12 +273,15 @@ def hill_climbing(init_board_state):
 
     end = time.time()
 
+    finalmoves(init_board_state, current_state)
     print("Elapsed time: " + str(round(end-start, 2)) + " s")
     print("Nodes expanded: " + str(len(moves)))
     
     return current_state, queens_pos_hc
 
 if __name__ == "__main__":
+
+    #Read board from csv file
     init_pos = []
     r = 0
     reader = csv.reader(open('board.csv', encoding='utf-8-sig'))
@@ -295,6 +298,11 @@ if __name__ == "__main__":
     init_board_state = np.array(init_board_state)
     board_size = len(init_board_state)
     
+    #Uncomment to generate a random board configuration
+    '''board_size = 7
+    weight_range = 8
+    init_board_state, init_pos = generate_configuration(board_size, weight_range)'''  
+
     solution_bfs, queens_pos_bfs = bfs(init_board_state, board_size)
     plt.figure(1)
     plot(init_board_state, init_pos, 'Initial Configuration')
