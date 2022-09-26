@@ -14,6 +14,7 @@ import csv
 import pandas as pd
 from itertools import chain
 import time
+import Local_Search
 
 class Queen:
     def __init__(self):
@@ -62,7 +63,7 @@ def plot(board, pos_queens, title):
     plt.imshow(chessboard,cmap='ocean')
     plt.title(title, fontweight="bold")
     for queen in pos_queens:
-        plt.text(queen[1], queen[0], '♕', fontsize=20, ha='center', va='center', color='black')
+        plt.text(queen[1], queen[0], '♕', fontsize=9, ha='center', va='center', color='black')
 
 def generate_configuration(n, weight_range):
     
@@ -107,14 +108,14 @@ def finalmoves(init_board, solution):
                             print("Move column " + str(column) + " up " + str(abs(move)) + " square.")
                             
                         else:
-                            print("Move column " + str(column) + " up " + str(abs(move)) + " squares.")
+                            # print("Move column " + str(column) + " up " + str(abs(move)) + " squares.")
                             costs.append((row_int[i]**2) * abs(move))
                             print("Move column " + str(column) + " up " + str(abs(move)) + " squares.")
     totalcost = sum(costs)
     print("The solution cost is: " + str(totalcost))
 
 def bfs(init_board_state, board_size):
-
+    print(" ")
     print("Running BFS...")
 
     start = time.time()
@@ -145,6 +146,7 @@ def bfs(init_board_state, board_size):
             break
 
         for queen in queens.positions:
+            # for j in range(-board_size, board_size+1):
             for j in range(-board_size, board_size+1):
                 queens.setcoords(queen)
                 new_state = queens.movequeen(j, current_state)
@@ -168,7 +170,7 @@ def bfs(init_board_state, board_size):
         print("No solution was found.")
 
 def Astar(init_board_state, board_size):
-    
+    print(" ")
     print("Running A*...")
     
     start = time.time()
@@ -242,12 +244,28 @@ def Astar(init_board_state, board_size):
     else:
         print("No solution was found.")
 
-if __name__ == "__main__":
+def hill_climbing(init_board_state):
+    print(" ")
+    print("Running Hill Climbing...")
+    start = time.time()
+    current_state,No_of_Attacking_Pair, iteration, moves, solution_cost = Local_Search.restarts(init_board_state)
+    queens_pos_hc = []
+    board = np.zeros([len(current_state),len(current_state)])
+    for i in range(len(current_state)):
+        for j in range(len(current_state[i])):
+            if current_state[i][j] != 0:
+                queens_pos_hc.append([i,j])
+            board[i,j] = current_state[i][j]
+    current_state = board
+    end = time.time()
+    print("Elapsed time: " + str(round(end-start, 2)) + " s")
+    print("Nodes expanded: " + str(len(moves)))
+    finalmoves(init_board_state, current_state)
+    return current_state, queens_pos_hc
 
+if __name__ == "__main__":
     init_pos = []
-    
     r = 0
-    
     reader = csv.reader(open('board.csv', encoding='utf-8-sig'))
     init_board_state = list(reader)
     for row in init_board_state:
@@ -260,17 +278,13 @@ if __name__ == "__main__":
         r = r+1
     
     init_board_state = np.array(init_board_state)
-
-    #board = [int(i) for i in board]
-
-    #board_size = 10
     board_size = len(init_board_state)
     weight_range = 8
 
     # Generate the initial random configuration of the board
-    #init_board_state, init_pos = generate_configuration(board_size, weight_range)
+    # init_board_state, init_pos = generate_configuration(board_size, weight_range)
     # print(init_board_state)
-    # solution, queens_pos = bfs(init_board_state, board_size)
+    
     solution_bfs, queens_pos_bfs = bfs(init_board_state, board_size)
     plt.figure(1)
     plot(init_board_state, init_pos, 'Initial Configuration')
@@ -279,4 +293,8 @@ if __name__ == "__main__":
     solution_Astar, queens_pos_Astar = Astar(init_board_state, board_size)
     plt.figure(3)
     plot(solution_Astar, queens_pos_Astar, 'Solution A*')
+    solution_hc, queens_pos_hc = hill_climbing(init_board_state)
+    plt.figure(4)
+    plot(solution_hc, queens_pos_hc, "Solution Hill Climbing with Simulated Annealing")
     plt.show()
+
