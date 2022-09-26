@@ -296,7 +296,7 @@ if __name__ == "__main__":
     
     init_board_state = np.array(init_board_state)
     board_size = len(init_board_state)
-    
+
     solution_bfs, queens_pos_bfs = bfs(init_board_state, board_size)
     plt.figure(1)
     plot(init_board_state, init_pos, 'Initial Configuration')
