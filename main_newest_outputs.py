@@ -63,7 +63,7 @@ def plot(board, pos_queens, title):
     plt.imshow(chessboard,cmap='ocean')
     plt.title(title, fontweight="bold")
     for queen in pos_queens:
-        plt.text(queen[1], queen[0], '♕', fontsize=9, ha='center', va='center', color='black')
+        plt.text(queen[1], queen[0], '♕', fontsize=20, ha='center', va='center', color='black')
 
 def generate_configuration(n, weight_range):
     
@@ -165,6 +165,10 @@ def bfs(init_board_state, board_size):
         print("Nodes expanded: " + str(len(expanded_nodes)))
         print("Search depth: " + str(search_depth))
         finalmoves(init_board_state, current_state)
+        
+        branching_factor = len(visited)**(1/search_depth)
+        print("The branching factor is " + str(round(branching_factor, 2)))
+
         return current_state, queens.positions
     else:
         print("No solution was found.")
@@ -180,6 +184,7 @@ def Astar(init_board_state, board_size):
     Open_List = []
     Closed_List = []
     expanded_nodes = []
+    visited = []
     search_depth = 0
     init_board_state_h = attackingpairs(init_board_state) * 10
     
@@ -221,7 +226,8 @@ def Astar(init_board_state, board_size):
 
                 if new_state is not None:
                     if not is_in_Closed_List:
-                        
+                        visited.append(new_state)
+
                         new_state_h = attackingpairs(new_state) * 10
                         new_state_g = g_cost + queen_weight**2
                         new_state_cost = new_state_g + new_state_h
@@ -240,6 +246,10 @@ def Astar(init_board_state, board_size):
         print("Nodes expanded: " + str(len(expanded_nodes)))
         print("Search depth: " + str(search_depth))
         finalmoves(init_board_state, current_state)
+
+        branching_factor = len(visited)**(1/search_depth)
+        print("The branching factor is " + str(round(branching_factor, 2)))
+
         return current_state, queens.positions
     else:
         print("No solution was found.")
@@ -247,20 +257,25 @@ def Astar(init_board_state, board_size):
 def hill_climbing(init_board_state):
     print(" ")
     print("Running Hill Climbing...")
+
     start = time.time()
+
     current_state,No_of_Attacking_Pair, iteration, moves, solution_cost = Local_Search.restarts(init_board_state)
     queens_pos_hc = []
     board = np.zeros([len(current_state),len(current_state)])
+
     for i in range(len(current_state)):
         for j in range(len(current_state[i])):
             if current_state[i][j] != 0:
                 queens_pos_hc.append([i,j])
             board[i,j] = current_state[i][j]
     current_state = board
+
     end = time.time()
+
     print("Elapsed time: " + str(round(end-start, 2)) + " s")
     print("Nodes expanded: " + str(len(moves)))
-    finalmoves(init_board_state, current_state)
+    
     return current_state, queens_pos_hc
 
 if __name__ == "__main__":
@@ -279,11 +294,6 @@ if __name__ == "__main__":
     
     init_board_state = np.array(init_board_state)
     board_size = len(init_board_state)
-    weight_range = 8
-
-    # Generate the initial random configuration of the board
-    # init_board_state, init_pos = generate_configuration(board_size, weight_range)
-    # print(init_board_state)
     
     solution_bfs, queens_pos_bfs = bfs(init_board_state, board_size)
     plt.figure(1)
