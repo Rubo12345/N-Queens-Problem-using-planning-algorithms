@@ -45,20 +45,20 @@ class Queen:
         if position[0] in range(0, self.board_size) and position[1] in range(0, self.board_size):
             return True
 
-    def movequeen(self, i, board):
+    def movequeen(self, iter, board):
         '''Move one queen along the column. 
         If the position is valid, create a board with the new configuration'''
         dir_row = [0, 1, 0, -1]
         dir_col = [1, 0, -1, 0]
-        new_position = (self.row + dir_row[i], self.col + dir_col[i])
-        if new_position[0] != self.row:
-            if self.is_valid(new_position):
+        new_position = (self.row + dir_row[iter], self.col + dir_col[iter])
+        if self.is_valid(new_position):
+            if board[new_position] == 0:
                 new_board = board.copy()
                 new_board[new_position[0], new_position[1]] = board[self.row, self.col]
                 new_board[self.row, self.col] = 0
-            else:
-                new_board = board
-            return new_board
+                board = new_board
+        
+        return board
 
 def plot(board, pos_queens, title):
     #Show chess board
@@ -66,7 +66,7 @@ def plot(board, pos_queens, title):
     plt.imshow(chessboard,cmap='ocean')
     plt.title(title, fontweight="bold")
     for queen in pos_queens:
-        plt.text(queen[1], queen[0], '♕', fontsize=20, ha='center', va='center', color='black')
+        plt.text(queen[1], queen[0], board[queen[0],queen[1]], fontsize=20, ha='center', va='center', color='black')
 
 def generate_configuration(n, weight_range):
     
@@ -86,6 +86,35 @@ def takeSecond(elem):
 
 def takeThird(elem):
     return elem[2]
+
+def attpairs(board,x,y):
+  count=0
+  attackers=[]
+  for i in range(len(board)):
+    for j in range(len(board[i])):
+      if board[i][j]>0 and (i!=x or j!=y):
+        xdiff=i-x
+        ydiff=j-y
+        #print(i,j)
+        if xdiff==0 or ydiff==0:
+          count+=1
+          if xdiff==0:
+            if ydiff>0:
+              attackers.append([[x,y],[i,j]])
+            else:
+              attackers.append([[i,j],[x,y]])
+          elif ydiff==0:
+            if xdiff>0:
+              attackers.append([[x,y],[i,j]])
+            else:
+              attackers.append([[i,j],[x,y]])
+        elif (xdiff/ydiff)==1 or (xdiff/ydiff)==-1:
+          count+=1
+          if x<i:
+            attackers.append([[x,y],[i,j]])
+          else:
+            attackers.append([[i,j],[x,y]])
+  return count, attackers
 
 def rboard(N):
     import random, copy
@@ -131,6 +160,12 @@ def gencoord(brd):
                 temp.append(brd[i][j])
                 coord.append(temp)
     return coord
+
+def print2D(m):
+    for i in range(len(m)):
+        for j in range(len(m[i])):
+            print(m[i][j], end="\t")
+        print()
 
 def movesa(old,new,coord):
     coords=copy.deepcopy(coord)
@@ -312,7 +347,7 @@ def bfs(init_board_state, board_size):
                 is_in_visited = any(np.array_equal(new_state, x) for x in visited)
                 if not is_in_visited:
                     if new_state is not None:
-                        att_queens = attackingpairs(new_state)
+                        att_queens = heuristicapno10(new_state)
                         queue.append((new_state, att_queens))
                         visited.append(new_state)
     
@@ -321,13 +356,41 @@ def bfs(init_board_state, board_size):
         print("Elapsed time: " + str(round(end-start, 2)) + " s")
         print("Nodes expanded: " + str(len(expanded_nodes)))
         print("Search depth: " + str(search_depth))
-        
-        branching_factor = len(visited)**(1/search_depth)
+        branching_factor = len(expanded_nodes)**(1/search_depth)
         print("The branching factor is " + str(round(branching_factor, 2)))
 
         return current_state, queens.positions
     else:
         print("No solution was found.")
+
+def attacking_pairs(board): #Returns the exact set of queens that are attacking each other
+  count=0
+  l=len(board)
+  att_set=[]
+  for i in range(l):
+    for j in range(l):
+      if board[i][j]>0:
+        temp=attpairs(board,i,j)
+        count=count+temp[0] #count+checkattackers(board,i,j)
+        for k in temp[1]:
+          if k not in att_set:
+            att_set.append(k)
+  count=count/2
+  return att_set
+
+def heuristicap(new_state):
+    return attackingpairs(new_state) * 10
+
+def heuristicapno10(new_state):
+    return attackingpairs(new_state) * 10
+
+def heuristicweightedap(new_state):
+    sumsquare=0
+    attset=attacking_pairs(new_state)
+    for i in attset:
+        for j in i:
+            sumsquare+=new_state[j[0],j[1]]**2
+    return len(attset)*sumsquare
 
 def Astar(init_board_state, board_size):
     print(" ")
@@ -342,7 +405,7 @@ def Astar(init_board_state, board_size):
     expanded_nodes = []
     visited = []
     search_depth = 0
-    init_board_state_h = attackingpairs(init_board_state) * 10
+    init_board_state_h = heuristicapno10(init_board_state)
     
     #Store board configuration, total cost travelled so far, f (cost+move+heuristic), heuristic
     Open_List.append((init_board_state, 0, init_board_state_h, init_board_state_h))
@@ -384,7 +447,7 @@ def Astar(init_board_state, board_size):
                     if not is_in_Closed_List:
                         visited.append(new_state)
 
-                        new_state_h = attackingpairs(new_state) * 10
+                        new_state_h = heuristicapno10(new_state)
                         new_state_g = g_cost + queen_weight**2
                         new_state_cost = new_state_g + new_state_h
 
@@ -402,7 +465,7 @@ def Astar(init_board_state, board_size):
         print("Nodes expanded: " + str(len(expanded_nodes)))
         print("Search depth: " + str(search_depth))
 
-        branching_factor = len(visited)**(1/search_depth)
+        branching_factor = len(expanded_nodes)**(1/search_depth)
         print("The branching factor is " + str(round(branching_factor, 2)))
 
         return current_state, queens.positions
@@ -440,6 +503,8 @@ if __name__ == "__main__":
     r = 0
     reader = csv.reader(open('board.csv', encoding='utf-8-sig'))
     init_board_state = list(reader)
+    #init_board_state = np.array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 3, 0, 0, 2], [7, 7, 2, 0, 0, 0, 9], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 0, 0]])
+
     for row in init_board_state:
         for i in range(len(row)):
             if row[i] == "":
@@ -450,18 +515,18 @@ if __name__ == "__main__":
         r = r+1
     
     init_board_state = np.array(init_board_state)
+    #init_board_state = np.array([[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 3, 0, 0, 0], [7, 7, 2, 0, 0, 2, 9], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 0, 0]])
     board_size = len(init_board_state)
-
     #Uncomment to generate a random board configuration
-    '''board_size = 7
+    '''board_size = 5
     weight_range = 8
-    init_board_state, init_pos = generate_configuration(board_size, weight_range)'''  
+    init_board_state, init_pos = generate_configuration(board_size, weight_range)'''
      
     solution_bfs, queens_pos_bfs = bfs(init_board_state, board_size)
     plt.figure(1)
     plot(init_board_state, init_pos, 'Initial Configuration')
     plt.figure(2)
-    plot(solution_bfs, queens_pos_bfs, 'Solution BFS')
+    plot(solution_bfs, queens_pos_bfs, 'Solution Greedy Search')
     solution_Astar, queens_pos_Astar = Astar(init_board_state, board_size)
     plt.figure(3)
     plot(solution_Astar, queens_pos_Astar, 'Solution A*')
@@ -470,3 +535,14 @@ if __name__ == "__main__":
     plot(solution_hc, queens_pos_hc, "Solution Hill Climbing with Simulated Annealing")
     plt.show()
 
+    '''print2D(init_board_state)
+    print()
+    print2D(solution_bfs)
+    print()
+    print2D(solution_Astar)
+    print()
+    print2D(solution_hc)
+    print()
+    print(init_board_state.tolist())
+    print()
+    print(solution_Astar.tolist())'''
