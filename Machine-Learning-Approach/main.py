@@ -16,6 +16,7 @@ from numpy import mean
 from sklearn.metrics import r2_score
 import pickle
 import features
+from sklearn.ensemble import RandomForestRegressor
 
 class CSV_:
     def __init__(self, path):
@@ -92,6 +93,8 @@ def data_processing(board_list, cost_list):
     return Xtrain, Xtest, Ytrain, Ytest
 
 Xtrain, Xtest, Ytrain, Ytest = data_processing(board_list,cost_list)
+print(Xtrain)
+
 
 def rmse(targets, predictions):
         return np.sqrt(np.mean(np.square(targets - predictions)))
@@ -110,7 +113,8 @@ def Training(X_train,Y_train):
         Ytrain = Y_train.iloc[train_index]
         Xval = X_train.iloc[val_index]
         Yval = Y_train.iloc[val_index]
-        model = LinearRegression()
+        # model = LinearRegression()
+        model = RandomForestRegressor(max_depth = 100, random_state = 0)
         poly = PolynomialFeatures(degree = 1)
         polyfeatures = poly.fit_transform(Xtrain)
         polyfeatures_val = poly.fit_transform(Xval)
@@ -126,15 +130,20 @@ models, model = Training(Xtrain, Ytrain)
 def predict_avg(models, inputs):
     return np.mean([model.predict(inputs) for model in models], axis=0)
 
-poly2 = PolynomialFeatures(degree= 1)
+poly2 = PolynomialFeatures(degree = 1)
+
+# Add it in report (degrees - 1,2,3,4,5)
+
 polyfeat = poly2.fit_transform(Xtest)
 preds = predict_avg(models, polyfeat)
 loss = rmse(Ytest, preds)
 
+print(" ")
 print("Testing Error", loss)
 print(" ")
 
 accuracy = r2_score(Ytest, preds)
+accuracy = accuracy * 100
 
 print("Testing Accuracy", accuracy)
 print(" ")
@@ -142,5 +151,16 @@ print(" ")
 filename = 'finalized_model.sav'
 pickle.dump(model, open(filename, 'wb'))
 
-print(model.coef_)
+# print(model.coef_)
 # print(poly2.get_feature_names(Xtrain.columns))
+
+
+# [a ,b ] = [a,b,ab, a+b, a-b, a^2, b^2]
+
+
+'''
+Points for report:
+1) Add it in report (degrees of LR- 1,2,3,4,5)
+2) RandomForestRegressor accuracy not good - compare its depths
+
+'''
