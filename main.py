@@ -238,6 +238,23 @@ def heuristicweightedap10(new_state):
             sumsquare+=new_state[j[0],j[1]]**2
     return len(attset)*sumsquare*10
 
+def ml_heuristic_1():
+    pass
+
+def ml_heuristic_2():
+    pass
+
+def ml_heuristic_3():
+    pass
+
+def ml_heuristic_4():
+    pass
+
+def ml_heuristic_5():
+    pass
+
+weights = [0 ,0 ,0 ,0 ,0]
+
 def Astar(init_board_state, board_size):
     print(" ")
     print("Running A*...")
@@ -293,6 +310,7 @@ def Astar(init_board_state, board_size):
                         visited.append(new_state)
 
                         new_state_h = heuristicapno10(new_state)
+                        # ml_heuristics = w[0]*ml_heuristic_1() + w[1]*ml_heuristic_2() + w[2]*ml_heuristic_3() + w[3]*ml_heuristic_4() + w[4]*ml_heuristic_5()
                         new_state_g = g_cost + queen_weight**2
                         new_state_cost = new_state_g + new_state_h
 
