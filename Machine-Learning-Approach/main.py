@@ -69,9 +69,6 @@ class Board_Features:
 def get_data(path):
     csv_ = CSV_("Data/Data_5_new.txt")
     board_list,  cost_list = csv_.readCSV_board("Data/Data_5_new.txt")
-    # update_list, update_cost = csv_.readCSV_board("Data/Data_5_new.txt")
-    # board_list += update_list
-    # cost_list += update_cost
     return board_list, cost_list
 
 board_list, cost_list = get_data("Data/Data_5_new.txt")
