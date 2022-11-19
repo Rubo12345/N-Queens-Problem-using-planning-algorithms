@@ -19,26 +19,27 @@ All Possible Features:
 import numpy as np
 import math
 import pandas as pd
+import Attacking_Queens
 
-dataframe1 = pd.read_excel('Data.xlsx')
-df = dataframe1[:1]
-init_board = df.iloc[0][1]
-print(init_board)
-board = [[[0, 7, 0, 0, 0], [7, 0, 3, 0, 0], [0, 0, 0, 4, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 6]]]
+# dataframe1 = pd.read_excel('Data.xlsx')
+# df = dataframe1[:1]
+# init_board = df.iloc[0][1]
+# print(init_board)
+board = [[0, 7, 0, 0, 0], [7, 0, 3, 0, 0], [0, 0, 0, 4, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 6]]
 
-class Board:
+class Features:
     def __init__(self,board):
-        self.board = board[0]
-        self.board_size = len(board[0])
+        self.board = board
+        self.board_size = len(board)
         self.heaviest_queen = 0
         self.lightest_queen = 0
         self.total_weight = 0
         self.ratio_H_to_L = 0
         self.mean_weight = self.total_weight / self.board_size
         self.median_weight = 0
-        self.Horizontal_Attacks = 0
-        self.Vertical_Attacks = 0
-        self.Diagonal_Attacks = 0
+        self.horizontal_attacks = 0
+        self.vertical_attacks = 0
+        self.diagonal_attacks = 0
         self.pair_of_attacking_queens = 0
         self.highest_attacks_by_queen = 0
         self.queens = []
@@ -51,36 +52,62 @@ class Board:
         return self.queens
 
     def Heaviest_Queen(self):
-        self.queens = Board.get_all_queens(self)
+        self.queens = Features.get_all_queens(self)
         self.heaviest_queen = max(self.queens)
         return self.heaviest_queen
 
     def Lightest_Queen(self):
-        self.queens = Board.get_all_queens(self)
+        self.queens = Features.get_all_queens(self)
         self.Lightest_queen = min(self.queens)
         return self.Lightest_queen
 
     def Total_Weight(self):
-        self.queens = Board.get_all_queens(self)
+        self.queens = Features.get_all_queens(self)
         self.total_weight = sum(self.queens)
         return self.total_weight
 
     def Ratio_Heavy_to_Light(self):
-        self.queens = Board.get_all_queens(self)
-        self.ratio = Board.Heaviest_Queen(self) / Board.Lightest_Queen(self)
+        self.queens = Features.get_all_queens(self)
+        self.ratio = Features.Heaviest_Queen(self) / Features.Lightest_Queen(self)
         return self.ratio
 
     def Mean_weight(self):
-        self.queens = Board.get_all_queens(self)
+        self.queens = Features.get_all_queens(self)
         self.mean_weight = np.mean(self.queens)
         return self.mean_weight
 
     def Median_weight(self):
-        self.queens = Board.get_all_queens(self)
+        self.queens = Features.get_all_queens(self)
         self.median_weight = np.median(self.queens)
         return self.median_weight
 
-    
-board = Board(board)
-a = board.Median_weight()
+    def Horizontal_Attacks(self):
+        pass
+
+    def Vertical_Attacks(self):
+        pass
+
+    def Diagonal_Attacks(self):
+        pass
+
+    def Pairs_Attacking_Queens(self):
+        pairs = Attacking_Queens.attackingpairs(self.board)
+        return pairs
+
+    def heuristic_1(self):
+        h1 = Attacking_Queens.attackingpairs(self.board) * Features.Total_Weight(self)
+        return h1
+
+    def heuristic_2(self):
+        h2 = Attacking_Queens.attackingpairs(self.board) * Features.Mean_weight(self)
+        return h2
+
+    def heuristic_3(self):
+        pass
+
+    def heuristic_4(self):
+        pass
+
+board = Features(board)
+a = board.Pairs_Attacking_Queens()
 print(a)
