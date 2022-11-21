@@ -74,7 +74,7 @@ class Features:
     def Mean_weight(self):
         self.queens = Features.get_all_queens(self)
         self.mean_weight = np.mean(self.queens)
-        return self.mean_weight
+        return self.mean_weight   
 
     def Median_weight(self):
         self.queens = Features.get_all_queens(self)
@@ -82,13 +82,47 @@ class Features:
         return self.median_weight
 
     def Horizontal_Attacks(self):
-        pass
+        return attacking_pairs(self.board)[1]
+        #pass
 
     def Vertical_Attacks(self):
-        pass
+        return attacking_pairs(self.board)[3]
 
     def Diagonal_Attacks(self):
-        pass
+        return attacking_pairs(self.board)[2]
+
+    def avang(self): #average value of the angle of the line joining two adjacent queens and the horizontal
+        sum=0
+        coord=gencoord(self.board)
+        q=len(coord)
+        for i in range(q-1):
+            sum += np.arctan2((coord[i][0]-coord[i+1][0]),(coord[i][1]-coord[i+1][1]))        
+        return sum
+
+    def avdist(self):
+        sum=0
+        coord = gencoord(self.board)
+        q = len(coord)
+        for i in range(q-1):
+            for j in range(i+1,q):
+                sum += ((coord[i][0]-coord[j][0])**2 + (coord[i][1]-coord[j][1])**2)**0.5
+        return sum
+    
+    def avweightedcoord(self):
+        sum = 0
+        coord = gencoord(self.board)
+        q = len(coord)
+        for i in range(q):
+            sum+=coord[i][0]*coord[i][2]
+        return sum
+        
+    def avcoord(self):
+        sum = 0
+        coord = gencoord(self.board)
+        q = len(coord)
+        for i in range(q):
+            sum += coord[i][0]
+        return sum
 
     def Pairs_Attacking_Queens(self):
         pairs = Attacking_Queens.attackingpairs(self.board)
@@ -103,10 +137,89 @@ class Features:
         return h2
 
     def heuristic_3(self):
-        pass
+        return Features.avdist(self)
 
     def heuristic_4(self):
-        pass
+        return Features.avweightedcoord(self)
+
+    def heuristic_5(self):
+        return Features.Pairs_Attacking_Queens(self)
+
+    def heuristic_6(self):
+        sumsquare=0
+        attset = attacking_pairs(self.board)[0]
+        for i in attset:
+            for j in i:
+                sumsquare+=self.board[j[0]][j[1]]**2
+        return len(attset)*sumsquare*10
+
+def gencoord(brd):
+    coord = []
+    for i in range(len(brd)):
+        for j in range(len(brd)):
+            temp = []
+            if brd[i][j] > 0:
+                temp.append(i)
+                temp.append(j)
+                temp.append(brd[i][j])
+                coord.append(temp)
+    return coord
+
+def attpairs(board, x, y): #x is row number and y is column
+    count = 0
+    dcount=0
+    vcount=0
+    hcount=0
+    attackers = []
+    for i in range(len(board)):
+        for j in range(len(board[i])):
+            if board[i][j] > 0 and (i != x or j != y):
+                xdiff = i-x
+                ydiff = j-y
+                # print(i,j)
+                if xdiff == 0 or ydiff == 0:
+                    count += 1
+                    if xdiff == 0:
+                        hcount+=1
+                        if ydiff > 0:
+                            attackers.append([[x, y], [i, j]])
+                        else:
+                            attackers.append([[i, j], [x, y]])
+                    elif ydiff == 0:
+                        vcount+=1
+                        if xdiff > 0:
+                            attackers.append([[x, y], [i, j]])
+                        else:
+                            attackers.append([[i, j], [x, y]])
+                elif (xdiff/ydiff) == 1 or (xdiff/ydiff) == -1:
+                    count += 1
+                    dcount+=1
+                    if x < i:
+                        attackers.append([[x, y], [i, j]])
+                    else:
+                        attackers.append([[i, j], [x, y]])
+    return count, attackers, hcount, dcount, vcount
+
+def attacking_pairs(board):  # Returns the exact set of queens that are attacking each other and the number of hor, ver and diag attacking pairs 
+    count = 0
+    hcount=0
+    vcount=0
+    dcount=0
+    l = len(board)
+    att_set = []
+    for i in range(l):
+        for j in range(l):
+            if board[i][j] > 0:
+                temp = attpairs(board, i, j)
+                count = count+temp[0]  # count+checkattackers(board,i,j)
+                hcount+=temp[2]
+                dcount+=temp[3]
+                vcount+=temp[4]
+                for k in temp[1]:
+                    if k not in att_set:
+                        att_set.append(k)
+    count = count/2
+    return att_set, hcount, dcount, vcount
 
 board = Features(board)
 a = board.Pairs_Attacking_Queens()
