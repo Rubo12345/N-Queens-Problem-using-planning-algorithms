@@ -166,7 +166,7 @@ if __name__ == "__main__":
             solutions_array.append([solution])
             cost_array.append(cost)
 
-        with open('Data_5_new.txt', 'w') as f:
+        with open('Data_8_new.txt', 'w') as f:
             count = 0
             for i in range(len(init_board_array)):
                 # f.write(f"{str(cost_array[i])}\n")

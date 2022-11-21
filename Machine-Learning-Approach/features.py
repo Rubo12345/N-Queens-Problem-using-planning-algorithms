@@ -137,10 +137,12 @@ class Features:
         return h2
 
     def heuristic_3(self):
-        return Features.avdist(self)
+        # return Features.avdist(self)
+        return 0
 
     def heuristic_4(self):
-        return Features.avweightedcoord(self)
+        # return Features.avweightedcoord(self)
+        return 0
 
     def heuristic_5(self):
         return Features.Pairs_Attacking_Queens(self)
