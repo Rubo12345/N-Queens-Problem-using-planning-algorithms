@@ -70,7 +70,6 @@ class Board_Features:
         self.heuristic_3 = self.features.heuristic_3()
         self.heuristic_4 = self.features.heuristic_4()
         self.heuristic_5 = self.features.heuristic_5()
-        self.heuristic_6 = self.features.heuristic_6()
 
 def get_data(path):
     csv_ = CSV_("Data/Data_5_new.txt")
@@ -80,19 +79,19 @@ def get_data(path):
 board_list, cost_list = get_data("Data/Data_5_new.txt")
 
 def data_processing(board_list, cost_list):
-    features = 6 
+    features = 5 
     X = np.empty(shape=(1, features))  # features matrix for ML model
     Y = np.reshape(cost_list, (len(cost_list), 1))  # target matrix for ML model
     sample_node_list = []  # nodes of training samples
     for i in range(0, len(board_list)):
         current = Board_Features(board_list[i], cost_list[i])
         sample_node_list.append(current)
-        new_row = [current.heuristic_1, current.heuristic_2, current.heuristic_3, current.heuristic_4,current.heuristic_5, current.heuristic_6]
+        new_row = [current.heuristic_1,current.heuristic_2,current.heuristic_3,current.heuristic_4,current.heuristic_5]
         X = np.vstack([X, new_row])
     X = X[1:, :]
     Xnew = np.hstack([X, Y])
-    data = pd.DataFrame(Xnew, columns=['h1', 'h2', 'h3', 'h4','h5', 'h6','cost']) 
-    X_inputs = data[['h1', 'h2', 'h3', 'h4','h5','h6']] 
+    data = pd.DataFrame(Xnew, columns=['h1', 'h2', 'h3', 'h4','h5', 'cost']) 
+    X_inputs = data[['h1', 'h2', 'h3', 'h4','h5']] 
     Y_targets = data['cost']
     Xtrain, Xtest, Ytrain, Ytest = train_test_split(X_inputs, Y_targets, test_size=0.1)
     return Xtrain, Xtest, Ytrain, Ytest
@@ -100,8 +99,13 @@ def data_processing(board_list, cost_list):
 Xtrain, Xtest, Ytrain, Ytest = data_processing(board_list,cost_list)
 print(Xtrain)
 
-def rmse(targets, predictions):
-        return np.sqrt(np.mean(np.square(targets - predictions)))
+model = LinearRegression()
+model.fit(Xtrain, Ytrain)
+print(model.coef_)
+print(model.intercept_)
+
+pd.DataFrame(model.coef_)
+predictions = model.predict(Xtest)
 
 def performance_metrics(targets, predictions):
     absolute_error = metrics.mean_absolute_error(targets,predictions)
@@ -109,70 +113,14 @@ def performance_metrics(targets, predictions):
     root_mean_squared_error = np.sqrt(metrics.mean_squared_error(targets, predictions))
     return absolute_error, mean_squared_error, root_mean_squared_error
 
-def Training(X_train,Y_train):
-    kfold = KFold(n_splits=10)
-    models = []
-    for train_index, val_index in kfold.split(X_train):
-        Xtrain = X_train.iloc[train_index]
-        Ytrain = Y_train.iloc[train_index]
-        Xval = X_train.iloc[val_index]
-        Yval = Y_train.iloc[val_index]
-        model = LinearRegression()
-        # model = RandomForestRegressor(max_depth = 100, random_state = 0)
-        poly = PolynomialFeatures(degree = 1)
-        polyfeatures = poly.fit_transform(Xtrain)
-        polyfeatures_val = poly.fit_transform(Xval)
-        model.fit(polyfeatures,Ytrain)
-        training_rmse = rmse(model.predict(polyfeatures), Ytrain)
-        validation_rmse = rmse(model.predict(polyfeatures_val),Yval)
-        models.append(model)
-        training_absolute_error, training_mean_squared_error, training_root_mean_squared_error = performance_metrics(Ytrain, model.predict(polyfeatures))
-        testing_absolute_error, testing_mean_squared_error, testing_root_mean_squared_error = performance_metrics(Yval, model.predict(polyfeatures_val))
-        print("Training_Absolute Error:",training_absolute_error)
-        print("Training_Mean Squared Error:",training_mean_squared_error)
-        print("Training_Root Mean Squared Error:",training_root_mean_squared_error)
-        print("Testing_Absolute Error:",testing_absolute_error)
-        print("Testing_Mean Squared Error:",testing_mean_squared_error)
-        print("Testing_Root Mean Squared Error:",testing_root_mean_squared_error)
-        # print('Train RMSE: {}, Validation RMSE: {}'.format(training_rmse, validation_rmse))
-    return models, model
+absolute_error, mean_squared_error, root_mean_squared_error = performance_metrics(Ytest, predictions)
+print("Absolute Error:",absolute_error)
+print("Mean Squared Error:",mean_squared_error)
+print("Root Mean Squared Error:",root_mean_squared_error)
 
-models, model = Training(Xtrain, Ytrain)
-
-def predict_avg(models, inputs):
-    return np.mean([model.predict(inputs) for model in models], axis=0)
-
-poly2 = PolynomialFeatures(degree = 1)
-
-# Add it in report (degrees - 1,2,3,4,5)
-
-polyfeat = poly2.fit_transform(Xtest)
-preds = predict_avg(models, polyfeat)
-loss = rmse(Ytest, preds)
-plt.scatter(Ytest, preds)
-print(" ")
-print("Testing Error", loss)
-print(" ")
-
-accuracy = r2_score(Ytest, preds)
+accuracy = r2_score(Ytest, predictions)
 accuracy = accuracy * 100
-
 print("Testing Accuracy", accuracy)
-print(" ")
 
-filename = 'finalized_model.sav'
-pickle.dump(model, open(filename, 'wb'))
+plt.scatter(Ytest, predictions)
 plt.show()
-print(model.coef_)
-# print(poly2.get_feature_names(Xtrain.columns))
-
-
-# [a ,b ] = [a,b,ab, a+b, a-b, a^2, b^2]
-
-
-'''
-Points for report:
-1) Add it in report (degrees of LR- 1,2,3,4,5)
-2) RandomForestRegressor accuracy not good - compare its depths
-
-'''
